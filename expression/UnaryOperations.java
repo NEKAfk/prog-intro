@@ -1,18 +1,12 @@
 package expression;
 
-import java.math.BigDecimal;
-
 public abstract class UnaryOperations implements MultiExpression {
     protected final MultiExpression expression;
     protected UnaryOperations(MultiExpression exp1) {
         expression = exp1;
     }
 
-    public abstract int evaluate(int x);
-    public abstract BigDecimal evaluate(BigDecimal x);
-    public abstract int evaluate(int x, int y, int z) throws ArithmeticException;
     protected abstract String getStringOperator();
-    public abstract int getPriorityOperator();
 
     @Override
     public boolean equals(Object obj) {

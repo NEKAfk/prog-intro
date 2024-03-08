@@ -3,23 +3,42 @@ package expression.parser;
 import expression.*;
 import expression.exceptions.*;
 
+import java.text.ParseException;
 import java.util.*;
 import java.util.function.*;
 
-interface Binary {
-    BinaryOperations create();
-}
-
-public class ExpressionParser implements TripleParser {
+public class ExpressionParser implements TripleParser, ListParser {
     @Override
-    public TripleExpression parse(String expression) throws Exception {
+    public TripleExpression parse(String expression) throws ParseException {
         return new Parser(expression).parseExpression();
     }
 
+    @Override
+    public ListExpression parse(String expression, List<String> variables) throws ParseException {
+        return new Parser(expression).parseExpression(variables);
+    }
+
     private static class Parser extends BaseParser {
-        private boolean flag1 = false;
-        private static List<List<String>> binOperations = List.of(List.of("*", "/"), List.of("+", "-"), List.of("&"), List.of("^"), List.of("|"), List.of("<<", ">>>", ">>"), List.of("min", "max"));
-        private Map<String, BiFunction<MultiExpression, MultiExpression, BinaryOperations>> binaryConstructors = new HashMap<>(Map.ofEntries(
+        private boolean hasWhitespace = false;
+
+        private List<String> variables;
+
+        private  static final Map<String, String> brackets = new HashMap<>(
+                Map.of("(", ")", "[", "]", "{", "}")
+        );
+
+        private static final List<List<String>> binOperations = List.of(
+                List.of("*", "/"),
+                List.of("+", "-"),
+                List.of("&"),
+                List.of("^"),
+                List.of("|"),
+                List.of("<<", ">>>", ">>"),
+                List.of("min", "max")
+        );
+
+        private final Map<String, BiFunction<MultiExpression, MultiExpression, BinaryOperations>> binaryConstructors = new HashMap<>(
+                Map.ofEntries(
             Map.entry("-", Subtract::new), Map.entry("+", Add::new),
             Map.entry("*", Multiply::new), Map.entry("/", Divide::new), 
             Map.entry("<<", ShiftL::new), Map.entry(">>", ShiftR::new), 
@@ -27,16 +46,21 @@ public class ExpressionParser implements TripleParser {
             Map.entry("max", Max::new), Map.entry("&", BitwiseAnd::new), 
             Map.entry("|", BitwiseOr::new), Map.entry("^", BitwiseXOR::new)));
         
-        private static List<String> unOperations = List.of("-", "t1", "l1", "low", "high");
-        private Map<String, Function<MultiExpression, UnaryOperations>> unaryConstructors = new HashMap<>(Map.ofEntries(
-            Map.entry("-", UnaryMinus::new), Map.entry("l1", L1::new), Map.entry("t1", T1::new), 
-            Map.entry("low", Low::new), Map.entry("high", High::new)));
+        private static final List<String> unOperations = List.of("-", "t1", "l1", "low", "high");
+        private final Map<String, Function<MultiExpression, UnaryOperations>> unaryConstructors = new HashMap<>(
+                Map.ofEntries(
+                        Map.entry("-", UnaryMinus::new),
+                        Map.entry("l1", L1::new),
+                        Map.entry("t1", T1::new),
+                        Map.entry("low", Low::new),
+                        Map.entry("high", High::new)));
         
         public Parser(String source) {
             super(source);
         }
 
-        public TripleExpression parseExpression() throws Exception {
+        public MultiExpression parseExpression(List<String> variables) throws ParseException {
+            this.variables = variables;
             MultiExpression res = parseBinary(binOperations.size() - 1);
             if (!eof()) {
                 throw new OperationExpectedException(getSource(), getOffset());
@@ -44,7 +68,11 @@ public class ExpressionParser implements TripleParser {
             return res;
         }
 
-        private MultiExpression parseBinary(int n) throws Exception {
+        public MultiExpression parseExpression() throws ParseException {
+            return parseExpression(List.of("x", "y", "z"));
+        }
+
+        private MultiExpression parseBinary(int n) throws ParseException {
             skipWhitespace();
             MultiExpression exp = n == 0 ? parseUnary() : parseBinary(n - 1);
             mark:
@@ -52,7 +80,7 @@ public class ExpressionParser implements TripleParser {
                 skipWhitespace();
                 for (final String op : binOperations.get(n)) {
                     if (expect(op)) {
-                        if (n == binOperations.size() - 1 && !flag1) {
+                        if (n == binOperations.size() - 1 && !hasWhitespace) {
                             System.err.println(getSource());
                             throw new WhitespaceExpectedException(getSource(), getOffset());
                         }
@@ -65,14 +93,14 @@ public class ExpressionParser implements TripleParser {
             return exp;
         }
 
-        private MultiExpression parseUnary() throws Exception {
+        private MultiExpression parseUnary() throws ParseException {
             skipWhitespace();
             MultiExpression exp = null;
             for (final String op : unOperations) {
                 if (op.equals("-") && expect(op)) {
                     if (Character.isDigit(getCh())) {
                         exp = parseNumber(false);
-                        flag1 = skipWhitespace();
+                        hasWhitespace = skipWhitespace();
                     } else {
                         exp = new UnaryMinus(parseUnary());
                     }
@@ -87,41 +115,44 @@ public class ExpressionParser implements TripleParser {
             return exp;
         }
 
-        private MultiExpression parseBracket() throws Exception {
+        private MultiExpression parseBracket() throws ParseException {
             skipWhitespace();
-            MultiExpression exp = null;
-            if (take('(')) {
-                exp = parseBinary(binOperations.size() - 1);
-                skipWhitespace();
-                if (!take(')')) {
-                    throw new BracketsMismatchException(getSource(), getOffset());
+            MultiExpression exp;
+            for (final Map.Entry<String, String> bracket : brackets.entrySet()) {
+                if (expect(bracket.getKey())) {
+                    exp = parseBinary(binOperations.size() - 1);
+                    skipWhitespace();
+                    if (!expect(bracket.getValue())) {
+                        throw new BracketsMismatchException(getSource(), getOffset());
+                    }
+                    hasWhitespace = true;
+                    return exp;
                 }
-                flag1 = true;
-            } else {
-                exp = parseAtom();
             }
-            return exp;
+            return parseAtom();
         }
 
-        private MultiExpression parseAtom() throws Exception {
+        private MultiExpression parseAtom() throws ParseException {
             skipWhitespace();
             MultiExpression exp = null;
-            if (take('x')) {
-                exp = parseVariable("x");
-            } else if (take('y')) {
-                exp = parseVariable("y");
-            } else if (take('z')) {
-                exp = parseVariable("z");
-            } else if (Character.isDigit(getCh())) {
-                exp = parseNumber(true);
-            } else {
-                throw new ConstOrVariableExpectedException(getSource(), getOffset());
+            for (int i = 0; i < variables.size(); i++) {
+                if (expect(variables.get(i))) {
+                    exp = parseVariable(variables.get(i), i);
+                    break;
+                }
             }
-            flag1 = skipWhitespace();
+            if (exp == null) {
+                if (Character.isDigit(getCh())) {
+                    exp = parseNumber(true);
+                } else {
+                    throw new ConstOrVariableExpectedException(getSource(), getOffset());
+                }
+            }
+            hasWhitespace = skipWhitespace();
             return exp;
         }
 
-        private MultiExpression parseNumber(boolean isPos) throws Exception {
+        private MultiExpression parseNumber(boolean isPos) throws ParseException {
             final StringBuilder sb = new StringBuilder();
             if (!isPos) {
                 sb.append("-");
@@ -139,8 +170,8 @@ public class ExpressionParser implements TripleParser {
             return new Const(res);
         }
 
-        private MultiExpression parseVariable(String var) {
-            return new Variable(var);
+        private MultiExpression parseVariable(String var, int name) {
+            return new Variable(var, name);
         }
 
         private boolean skipWhitespace() {

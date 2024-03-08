@@ -1,35 +1,31 @@
 package expression;
 
-import java.math.BigDecimal;
+import java.util.List;
 
 public class Const implements MultiExpression {
-    private Number val;
+    private final int val;
     public Const(int val) {
-        this.val = Integer.valueOf(val);
-    }
-
-    public Const(BigDecimal val) {
         this.val = val;
     }
 
     @Override
     public int evaluate(int x) {
-        return val.intValue();
-    }
-
-    @Override
-    public BigDecimal evaluate(BigDecimal x) {
-        return (BigDecimal)val;
+        return val;
     }
 
     @Override
     public int evaluate(int x, int y, int z) {
-        return val.intValue();
+        return val;
+    }
+
+    @Override
+    public int evaluate(List<Integer> variables) {
+        return val;
     }
 
     @Override
     public String toString() {
-        return val.toString();
+        return Integer.toString(val);
     }
 
     @Override
@@ -40,15 +36,13 @@ public class Const implements MultiExpression {
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof Const other) {
-            if (this.val != null) {
-                return this.val.equals(other.val);
-            }
+            return val == other.val;
         }
         return false;
     }
 
     @Override
     public int hashCode() {
-        return val.hashCode();
+        return val;
     }
 }

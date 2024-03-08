@@ -1,6 +1,6 @@
 package expression;
 
-import java.math.BigDecimal;
+import java.util.List;
 
 public class Min extends BinaryOperations {
     public Min(MultiExpression exp1, MultiExpression exp2) {
@@ -13,8 +13,10 @@ public class Min extends BinaryOperations {
     }
 
     @Override
-    public BigDecimal evaluate(BigDecimal x) {
-        throw new IllegalStateException("Unsupported operation for BigDecimal");
+    public int evaluate(List<Integer> variables) {
+        int res1 = expressions[0].evaluate(variables);
+        int res2 = expressions[1].evaluate(variables);
+        return Math.min(res1, res2);
     }
 
     @Override

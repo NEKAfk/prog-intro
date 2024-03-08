@@ -1,5 +1,5 @@
 package expression;
 
-public interface MultiExpression extends Expression, TripleExpression, BigDecimalExpression, Priority {
+public interface MultiExpression extends Expression, TripleExpression, ListExpression, Priority {
     
 }

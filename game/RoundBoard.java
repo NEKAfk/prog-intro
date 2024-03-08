@@ -17,7 +17,6 @@ public class RoundBoard extends TicTacAbstract {
                 x += 2;
             }
         }
-        // :NOTE: ??
         oxWin[1] = countWin(Cell.X);
         oxWin[0] = countWin(Cell.O);
     }

@@ -1,40 +1,27 @@
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.function.Predicate;
 
-interface ScannerComp {
-    boolean compare(char c);
-}
 public class Scanner {
-    public final static ScannerComp decInCurLine = new ScannerComp() {
-        public boolean compare(char c) {
-            return (Character.isDigit(c) || c == '-');
-        }
-    };
+    public final static Predicate<Character> decInCurLine = c -> Character.isDigit(c) || c == '-';
 
-    public final static ScannerComp hexdecInCurLine = new ScannerComp() {
-        public boolean compare(char c) {
-            return (Character.isLetterOrDigit(c) || c == '-');
-        }
-    };
+    public final static Predicate<Character> hexdecInCurLine = c -> Character.isLetterOrDigit(c) || c == '-';
 
-    public final static ScannerComp wordInCurLine = new ScannerComp() {
-        public boolean compare(char c) {
-            return Character.isLetter(c) || Character.compare(c, '\'') == 0 || 
+    public final static Predicate<Character> wordInCurLine = c -> Character.isLetter(c) || c == '\'' ||
             Character.getType(c) == Character.DASH_PUNCTUATION;
-        }
-    };
 
-    private Reader reader;
-    private char[] buffer;
+    private final Reader reader;
+    private final char[] buffer;
     private int length;
     private int point;
-    Scanner(InputStream in) throws FileNotFoundException, IOException {
-        reader = new InputStreamReader(in, "UTF-8");
+    Scanner(InputStream in) {
+        reader = new InputStreamReader(in, StandardCharsets.UTF_8);
         buffer = new char[4096];
         length = 0;
         point = 0;
     }
 
-    Scanner(String in) throws IOException {
+    Scanner(String in) {
         reader = new StringReader(in);
         buffer = new char[4096];
         length = 0;
@@ -53,15 +40,14 @@ public class Scanner {
         return false;
     }
 
-    // :NOTE: naming
     public boolean hasNextChar() throws IOException {
         return updateBuffer();
     }
 
-    public boolean hasNext(ScannerComp Sc) throws IOException {
+    public boolean hasNext(Predicate<Character> scannerPred) throws IOException {
         while (updateBuffer()) {
             while (point < length) {
-                if (Sc.compare(buffer[point])) {
+                if (scannerPred.test(buffer[point])) {
                     return true;
                 } else if (isEOL(buffer[point])) {
                     point++;
@@ -73,11 +59,11 @@ public class Scanner {
         return false;
     }
 
-    public String next(ScannerComp Sc) throws IOException {
+    public String next(Predicate<Character> scannerPred) throws IOException {
         StringBuilder sb = new StringBuilder();
         while (updateBuffer()) {
             while (point < length) {
-                if (!Sc.compare(buffer[point])) {
+                if (!scannerPred.test(buffer[point])) {
                     return sb.toString();
                 }
                 sb.append(buffer[point++]);

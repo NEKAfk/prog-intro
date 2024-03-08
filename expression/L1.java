@@ -1,6 +1,6 @@
 package expression;
 
-import java.math.BigDecimal;
+import java.util.List;
 
 public class L1 extends UnaryOperations {
 
@@ -14,13 +14,13 @@ public class L1 extends UnaryOperations {
     }
 
     @Override
-    public BigDecimal evaluate(BigDecimal x) throws IllegalStateException {
-        throw new IllegalStateException("Unsuppported operation");
+    public int evaluate(int x, int y, int z) {
+        return Integer.numberOfLeadingZeros(~expression.evaluate(x, y, z));
     }
 
     @Override
-    public int evaluate(int x, int y, int z) {
-        return Integer.numberOfLeadingZeros(~expression.evaluate(x, y, z));
+    public int evaluate(List<Integer> variables) {
+        return Integer.numberOfLeadingZeros(~expression.evaluate(variables));
     }
 
     @Override

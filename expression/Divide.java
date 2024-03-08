@@ -1,7 +1,8 @@
 package expression;
 
-import java.math.BigDecimal;
 import expression.exceptions.*;
+
+import java.util.List;
 
 public class Divide extends BinaryOperations {
     public Divide(MultiExpression exp1, MultiExpression exp2) {
@@ -14,11 +15,6 @@ public class Divide extends BinaryOperations {
     }
 
     @Override
-    public BigDecimal evaluate(BigDecimal x) {
-        return expressions[0].evaluate(x).divide(expressions[1].evaluate(x));
-    }
-
-    @Override
     public int evaluate(int x, int y, int z) throws ArithmeticException {
         int res1 = expressions[0].evaluate(x, y, z);
         int res2 = expressions[1].evaluate(x, y, z);
@@ -27,6 +23,13 @@ public class Divide extends BinaryOperations {
         } else if (res1 == Integer.MIN_VALUE && res2 == -1) {
             throw new OverflowException();
         }
+        return res1 / res2;
+    }
+
+    @Override
+    public int evaluate(List<Integer> variables) {
+        int res1 = expressions[0].evaluate(variables);
+        int res2 = expressions[1].evaluate(variables);
         return res1 / res2;
     }
 

@@ -1,6 +1,7 @@
 package expression;
 
-import java.math.BigDecimal;
+import java.util.List;
+
 import expression.exceptions.*;
 
 public class UnaryMinus extends UnaryOperations {
@@ -15,17 +16,17 @@ public class UnaryMinus extends UnaryOperations {
     }
 
     @Override
-    public BigDecimal evaluate(BigDecimal x) {
-        return expression.evaluate(x).negate();
-    }
-
-    @Override
     public int evaluate(int x, int y, int z) throws ArithmeticException {
         int res = expression.evaluate(x, y, z);
         if (res == Integer.MIN_VALUE) {
             throw new OverflowException();
         }
         return -expression.evaluate(x, y, z);
+    }
+
+    @Override
+    public int evaluate(List<Integer> variables) {
+        return -expression.evaluate(variables);
     }
 
     @Override
@@ -40,12 +41,10 @@ public class UnaryMinus extends UnaryOperations {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("-");
-        sb.append("(");
-        sb.append(expression.toString());
-        sb.append(")");
-        return sb.toString();
+        return "-" +
+                "(" +
+                expression.toString() +
+                ")";
     }
 
     @Override
@@ -54,14 +53,13 @@ public class UnaryMinus extends UnaryOperations {
         if (this.getPriorityOperator() <= expression.getPriorityOperator()) {
             sb.append("- ");
             sb.append(expression.toMiniString());
-            return sb.toString();
         } else {
             sb.append("-");
             sb.append("(");
             sb.append(expression.toMiniString());
             sb.append(")");
-            return sb.toString();
         }
+        return sb.toString();
     }
     
 }

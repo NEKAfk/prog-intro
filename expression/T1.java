@@ -1,6 +1,6 @@
 package expression;
 
-import java.math.BigDecimal;
+import java.util.List;
 
 public class T1 extends UnaryOperations {
 
@@ -14,8 +14,8 @@ public class T1 extends UnaryOperations {
     }
 
     @Override
-    public BigDecimal evaluate(BigDecimal x) throws IllegalStateException {
-        throw new IllegalStateException("Unsuppported operation");
+    public int evaluate(List<Integer> variables) {
+        return Integer.numberOfTrailingZeros(~expression.evaluate(variables));
     }
 
     @Override

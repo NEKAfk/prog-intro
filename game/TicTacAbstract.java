@@ -51,7 +51,6 @@ public abstract class TicTacAbstract implements Board {
         return turn;
     }
 
-    // :NOTE: too-complex
     protected BigInteger countSegments(int i, int j, int dir1, int dir2, Cell turn) {
         BigInteger res = BigInteger.ZERO;
         while (0 <= i && i < m && 0 <= j && j < n && cells[i][j] == Cell.B) {
@@ -109,7 +108,6 @@ public abstract class TicTacAbstract implements Board {
         return res;
     }
 
-    // :NOTE: copy-paste
     protected int window(final Move move, int dir1, int dir2) {
         int wnd1 = count(move, move.getRow() - dir1, move.getColumn() - dir2, -dir1, -dir2);
         int wnd2 = count(move, move.getRow() + dir1, move.getColumn() + dir2, dir1, dir2);

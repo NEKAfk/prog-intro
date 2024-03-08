@@ -1,7 +1,8 @@
 package expression;
 
-import java.math.BigDecimal;
-import expression.exceptions.*;;
+import java.util.List;
+
+import expression.exceptions.*;
 
 public class Subtract extends BinaryOperations {
     public Subtract(MultiExpression exp1, MultiExpression exp2) {
@@ -14,10 +15,11 @@ public class Subtract extends BinaryOperations {
     }
 
     @Override
-    public BigDecimal evaluate(BigDecimal x) {
-        return expressions[0].evaluate(x).subtract(expressions[1].evaluate(x));
+    public int evaluate(List<Integer> variables) {
+        int res1 = expressions[0].evaluate(variables);
+        int res2 = expressions[1].evaluate(variables);
+        return res1 - res2;
     }
-
     @Override
     public int evaluate(int x, int y, int z) throws ArithmeticException {
         int res1 = expressions[0].evaluate(x, y, z);

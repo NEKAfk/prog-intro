@@ -1,11 +1,24 @@
 package expression;
 
-import java.math.BigDecimal;
+import java.util.List;
 
 public class Variable implements MultiExpression {
     private final String var;
+    private final int name;
+
     public Variable(String var) {
+        this.name = -1;
         this.var = var;
+    }
+
+    public Variable(int name) {
+        this.var = "var" + name;
+        this.name = name;
+    }
+
+    public Variable(String var, int name) {
+        this.var = var;
+        this.name = name;
     }
 
     @Override
@@ -14,22 +27,13 @@ public class Variable implements MultiExpression {
     }
 
     @Override
-    public BigDecimal evaluate(BigDecimal x) {
-        return x;
-    }
-
-    @Override
     public int evaluate(int x, int y, int z) {
-        switch (var) {
-            case "x":
-                return x;
-            case "y":
-                return y;
-            case "z":
-                return z;
-            default:
-                throw new IllegalStateException();
-        }
+        return switch (var) {
+            case "x" -> x;
+            case "y" -> y;
+            case "z" -> z;
+            default -> throw new IllegalStateException();
+        };
     }
 
     @Override
@@ -53,5 +57,10 @@ public class Variable implements MultiExpression {
     @Override
     public String toMiniString() {
         return this.toString();
+    }
+
+    @Override
+    public int evaluate(List<Integer> variables) {
+        return variables.get(name);
     }
 }

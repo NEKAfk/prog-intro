@@ -9,7 +9,7 @@ public class Game {
     protected static final Map<Cell, Character> SYMBOLS = Map.of(
         Cell.X, 'X',
         Cell.O, 'O',
-        Cell.E, '\u25a1',
+        Cell.E, '□',
         Cell.B, ' '
     );
 
@@ -37,7 +37,6 @@ public class Game {
         final Move move;
         try {
             move = player.move(board.getPosition(), board.getCell());
-            // :NOTE: AIOBE
         } catch (RuntimeException e) {
             log("Exception on the player side: " + e.getMessage());
             return 3 - no;
@@ -45,21 +44,21 @@ public class Game {
         Result result = board.makeMove(move);
         log("Player " + no + " move: " + move);
         log("Position:\n" + printBoard(board.getPosition()));
-        switch (result) {
-            case DRAW:
+        return switch (result) {
+            case DRAW -> {
                 log("Draw");
-                return 0;
-            case LOSE:
+                yield 0;
+            }
+            case LOSE -> {
                 log("Player " + no + " lose");
-                return 3 - no;
-            case UNKNOWN:
-                return -1;
-            case WIN:
+                yield 3 - no;
+            }
+            case UNKNOWN -> -1;
+            case WIN -> {
                 log("Player " + no + " won");
-                return no;
-            default:
-                throw new AssertionError("Unknown result");
-        }
+                yield no;
+            }
+        };
     }
 
     private void log(final String message) {
@@ -70,15 +69,15 @@ public class Game {
 
     private String printBoard(Position pos) {
         final StringBuilder sb = new StringBuilder();
-        sb.append("    ");
+        sb.append("   ");
         for (int col = 0; col < pos.getN(); col++) {
-            sb.append(String.format("%4d", col + 1));
+            sb.append(String.format("%3d", col + 1));
         }
         for (int r = 0; r < pos.getM(); r++) {
-            sb.append("\n\n");
-            sb.append(String.format("%4d", r + 1));
+            sb.append("\n");
+            sb.append(String.format("%3d", r + 1));
             for (int c = 0; c < pos.getN(); c++) {
-                sb.append(String.format("%4s", SYMBOLS.get(pos.getCell(r, c))));
+                sb.append(String.format("%3s", SYMBOLS.get(pos.getCell(r, c))));
             }
         }
         return sb.toString();

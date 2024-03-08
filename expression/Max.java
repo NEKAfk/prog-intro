@@ -1,6 +1,6 @@
 package expression;
 
-import java.math.BigDecimal;
+import java.util.List;
 
 public class Max extends BinaryOperations {
     public Max(MultiExpression exp1, MultiExpression exp2) {
@@ -13,14 +13,16 @@ public class Max extends BinaryOperations {
     }
 
     @Override
-    public BigDecimal evaluate(BigDecimal x) {
-        throw new IllegalStateException("Unsupported operation for BigDecimal");
-    }
-
-    @Override
     public int evaluate(int x, int y, int z) throws ArithmeticException {
         int res1 = expressions[0].evaluate(x, y, z);
         int res2 = expressions[1].evaluate(x, y, z);
+        return Math.max(res1, res2);
+    }
+
+    @Override
+    public int evaluate(List<Integer> variables) {
+        int res1 = expressions[0].evaluate(variables);
+        int res2 = expressions[1].evaluate(variables);
         return Math.max(res1, res2);
     }
 

@@ -1,6 +1,6 @@
 package expression;
 
-import java.math.BigDecimal;
+import java.util.List;
 
 public class BitwiseXOR extends BinaryOperations {
     public BitwiseXOR(MultiExpression exp1, MultiExpression exp2) {
@@ -13,13 +13,15 @@ public class BitwiseXOR extends BinaryOperations {
     }
 
     @Override
-    public BigDecimal evaluate(BigDecimal x) {
-        throw new IllegalStateException("Unsupported for BigDecimal");
+    public int evaluate(int x, int y, int z) {
+        return expressions[0].evaluate(x, y, z) ^ expressions[1].evaluate(x, y, z);
     }
 
     @Override
-    public int evaluate(int x, int y, int z) {
-        return expressions[0].evaluate(x, y, z) ^ expressions[1].evaluate(x, y, z);
+    public int evaluate(List<Integer> variables) {
+        int res1 = expressions[0].evaluate(variables);
+        int res2 = expressions[1].evaluate(variables);
+        return res1 ^ res2;
     }
 
     @Override
