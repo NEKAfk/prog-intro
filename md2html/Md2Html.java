@@ -1,6 +1,7 @@
 package md2html;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class Md2Html {
@@ -20,22 +21,15 @@ public class Md2Html {
     }
 
     public static ParagraphElem construct(List<ParagraphElem> elements, String key) {
-        switch (key) {
-            case "__", "**":
-                return new Strong(elements);
-            case "_", "*":
-                return new Emphasis(elements);
-            case "--":
-                return new Strikeout(elements);
-            case "`":
-                return new Code(elements);
-            case "<<":
-                return new Insert(elements);
-            case "}}":
-                return new Delete(elements);
-            default:
-                return new Text("");
-        }
+        return switch (key) {
+            case "__", "**" -> new Strong(elements);
+            case "_", "*" -> new Emphasis(elements);
+            case "--" -> new Strikeout(elements);
+            case "`" -> new Code(elements);
+            case "<<" -> new Insert(elements);
+            case "}}" -> new Delete(elements);
+            default -> new Text("");
+        };
     }
 
     public static List<ParagraphElem> handleLine(String line, int start, int end) {
@@ -77,78 +71,58 @@ public class Md2Html {
     }
     public static void main(final String[] args) {
         List<MainElement> ans = new ArrayList<>();
-        try {
-            BufferedReader in = new BufferedReader(
-                                    new InputStreamReader(
-                                        new FileInputStream(args[0]), "UTF-8"));
-            try {
-                String line = in.readLine();
-                List<ParagraphElem> list = new ArrayList<>();
-                int typeOfText = -1;
-                while (line != null) {
-                    if (!line.isEmpty()) {
-                        int cnt = 0;
-                        while (line.charAt(cnt) == '#') {
-                            cnt++;
-                        }
-                        if (Character.isWhitespace(line.charAt(cnt)) && cnt != 0) {
-                            typeOfText = cnt;
-                            line = line.substring(cnt + 1);
-                        } else {
-                            typeOfText = 0;
-                        }
-                        StringBuilder sb = new StringBuilder();
-                        while (line != null && !line.isEmpty()) {
-                            sb.append(line);
-                            line = in.readLine();
-                            if (line != null && !line.isEmpty()) {
-                                sb.append(System.lineSeparator());
-                            }
-                        }
-                        list = handleLine(sb.toString(), 0, sb.length());
-                        if (typeOfText == 0) {
-                            ans.add(new Paragraph(list));
-                        } else {
-                            ans.add(new Header(list, typeOfText));
-                        }
-                        list.clear();
+        try (BufferedReader in = new BufferedReader(
+                new InputStreamReader(
+                        new FileInputStream(args[0]), StandardCharsets.UTF_8))) {
+            String line = in.readLine();
+            List<ParagraphElem> list;
+            int typeOfText;
+            while (line != null) {
+                if (!line.isEmpty()) {
+                    int cnt = 0;
+                    while (line.charAt(cnt) == '#') {
+                        cnt++;
                     }
-                    line = in.readLine();
+                    if (Character.isWhitespace(line.charAt(cnt)) && cnt != 0) {
+                        typeOfText = cnt;
+                        line = line.substring(cnt + 1);
+                    } else {
+                        typeOfText = 0;
+                    }
+                    StringBuilder sb = new StringBuilder();
+                    while (line != null && !line.isEmpty()) {
+                        sb.append(line);
+                        line = in.readLine();
+                        if (line != null && !line.isEmpty()) {
+                            sb.append(System.lineSeparator());
+                        }
+                    }
+                    list = handleLine(sb.toString(), 0, sb.length());
+                    if (typeOfText == 0) {
+                        ans.add(new Paragraph(list));
+                    } else {
+                        ans.add(new Header(list, typeOfText));
+                    }
+                    list.clear();
                 }
-            } catch (IOException e) {
-                System.err.println("Input exception" + e.getMessage());
-                return;
-            } finally {
-                in.close();
+                line = in.readLine();
             }
-        } catch (FileNotFoundException e) {
-            System.err.println("Input file not found or doesn`t exsist" + e.getMessage());
-            return;
         } catch (IOException e) {
-            System.err.println("Couldn`t close input stream" + e.getMessage());
+            System.err.println("Input exception" + e.getMessage());
             return;
         }
 
-        try {
-            Writer out = new BufferedWriter(
-                                    new OutputStreamWriter(
-                                        new FileOutputStream(args[1]), "UTF-8"));
-            try {
-                StringBuilder sb = new StringBuilder();
-                for (MainElement mElem : ans) {
-                    mElem.toHtml(sb);
-                    sb.append(System.lineSeparator());
-                }
-                out.write(sb.toString());
-            } catch (IOException e) {
-                System.err.println("Output exception" + e.getMessage());
-            } finally {
-                out.close();
+        try (Writer out = new BufferedWriter(
+                new OutputStreamWriter(
+                        new FileOutputStream(args[1]), StandardCharsets.UTF_8))) {
+            StringBuilder sb = new StringBuilder();
+            for (MainElement mElem : ans) {
+                mElem.toHtml(sb);
+                sb.append(System.lineSeparator());
             }
-        } catch (FileNotFoundException e) {
-            System.err.println("Output file not found or doesn`t exsist" + e.getMessage());
+            out.write(sb.toString());
         } catch (IOException e) {
-            System.err.println("Couldn`t close output stream" + e.getMessage());
+            System.err.println("Output exception" + e.getMessage());
         }
     }
 }
